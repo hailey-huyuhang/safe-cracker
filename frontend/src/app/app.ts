@@ -3,6 +3,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { CrackResult, CrackSafeService, StreamEvent } from './crack-safe.service';
+import { SoundService } from './sound.service';
 
 type Status = 'idle' | 'cracking' | 'cracked' | 'error';
 
@@ -32,6 +33,8 @@ const STATUS_LABEL: Record<Status, string> = {
 })
 export class App {
   private readonly api = inject(CrackSafeService);
+  /** The sound tool, audibly: a beep per probe and a jingle when the safe opens. */
+  protected readonly sound = inject(SoundService);
 
   /** The form: one input that must be exactly 10 digits. */
   readonly form = new FormGroup({
@@ -85,6 +88,7 @@ export class App {
     }
     const combination = this.combination.value;
     const live = this.liveMode();
+    this.sound.unlock(); // we are inside the submit click, the one place a browser lets audio start
     this.start(combination);
 
     try {
@@ -95,6 +99,7 @@ export class App {
     } catch (err) {
       this.status.set('error');
       this.error.set(err instanceof Error ? err.message : String(err));
+      this.sound.failure();
     }
   }
 
@@ -115,6 +120,7 @@ export class App {
     this.attempts.set(event.attempt);
     this.currentGuess.set(event.guess);
     this.currentMatches.set(event.matches);
+    this.sound.beep(event.matches);
     this.probes.update((probes) => [
       ...probes,
       { attempt: event.attempt, digits: event.guess.split(''), matches: event.matches },
@@ -127,6 +133,7 @@ export class App {
     this.currentMatches.set(10);
     this.result.set(result);
     this.status.set('cracked');
+    this.sound.success();
     this.history.update((entries) => [{ combination, live, ...result }, ...entries].slice(0, 10));
   }
 }

@@ -5,7 +5,8 @@
     <p class="lede">
       Enter the safe's real 10-digit combination. The solver never reads it directly:
       it only hears how many digits of each guess are in the right place, and works the
-      combination out from that.
+      combination out from that. Leave the sound on and you can hear it work: the higher
+      the beep, the more digits are in place.
     </p>
   </header>
 
@@ -53,7 +54,18 @@
         <span class="counter-label">Attempts</span>
         <span class="counter-value">{{ attempts() }}</span>
       </div>
-      <span class="badge">{{ statusLabel() }}</span>
+      <div class="live-actions">
+        <button
+          type="button"
+          class="btn ghost small"
+          (click)="sound.toggle()"
+          [attr.aria-pressed]="!sound.muted()"
+          [title]="sound.muted() ? 'Turn the sound tool on' : 'Mute the sound tool'"
+        >
+          {{ sound.muted() ? '🔇 Sound off' : '🔊 Sound on' }}
+        </button>
+        <span class="badge">{{ statusLabel() }}</span>
+      </div>
     </div>
 
     <div class="dial" aria-label="Current guess">

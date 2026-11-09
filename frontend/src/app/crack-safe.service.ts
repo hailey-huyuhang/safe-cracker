@@ -37,7 +37,7 @@ export class CrackSafeService {
   async crackLive(
     actualCombination: string,
     onEvent: (event: StreamEvent) => void,
-    paceMs = 40,
+    paceMs = 80, // slow enough that each beep of the sound tool can be heard
   ): Promise<CrackResult> {
     const response = await fetch('/api/crack_safe/stream/', {
       method: 'POST',

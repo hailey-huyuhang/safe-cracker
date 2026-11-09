@@ -25,6 +25,8 @@ h2 small { color: var(--muted); font-weight: 400; font-size: 13px; margin-left: 
 .counter { display: flex; flex-direction: column; }
 .counter-label { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .counter-value { font: 700 64px/1 var(--mono); font-variant-numeric: tabular-nums; transition: color .2s; }
+.live-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.btn.small { padding: 6px 12px; font-size: 13px; }
 .badge { padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; background: var(--panel-2); color: var(--muted); border: 1px solid var(--line); white-space: nowrap; }
 .live[data-status="cracking"] .badge { color: var(--accent); border-color: var(--accent); }
 .live[data-status="cracked"] .badge { color: #062a26; background: var(--hit); border-color: var(--hit); }
@@ -54,6 +56,10 @@ td { padding: 6px 8px; border-bottom: 1px solid rgba(39, 49, 79, .6); }
 
 .foot { color: var(--muted); font-size: 13px; text-align: center; }
 code { font-family: var(--mono); background: var(--panel-2); padding: 2px 6px; border-radius: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn, .cell, .counter-value { transition: none; }
+}
 
 @media (max-width: 560px) {
   h1 { font-size: 32px; }

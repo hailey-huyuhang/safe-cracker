@@ -78,7 +78,8 @@ curl -sN -X POST http://localhost:8000/api/crack_safe/stream/ \
 {"event": "done", "attempts": 14, "time_taken": 4.5e-05}
 ```
 
-`pace_ms` (optional, 0–1000, default 40) is the delay between lines. The solver
+`pace_ms` (optional, 0–1000, default 40) is the delay between lines; the UI asks for
+80 ms so that each beep of the sound tool can be heard. The solver
 itself runs unthrottled in a worker thread, so `time_taken` is its real
 duration; the pacing only spreads delivery out so a person can watch.
 
@@ -94,6 +95,7 @@ zoneless). The relevant files are:
 - `src/app/app.ts` – the page component: the form, the live counter, results and history
 - `src/app/app.html` / `app.css` – its template and styles
 - `src/app/crack-safe.service.ts` – the two API calls (plain POST, and the NDJSON stream)
+- `src/app/sound.service.ts` – the audible sound tool: Web Audio beeps per probe and the success jingle
 
 To work on it you need Node 22+:
 
@@ -153,6 +155,14 @@ attempts (mean 25.1) and about 25 µs.
   watch. The stream endpoint runs it in a worker thread, forwards every probe
   through the solver's `on_guess` hook, and paces delivery; the frontend
   updates its counter per event and freezes it on `done`.
+- **The sound tool makes sound.** Every probe plays a short beep whose pitch
+  rises with the number of digits in place (0 → A3, two semitones per digit),
+  and opening the safe plays a short jingle; a failed request buzzes. All of it
+  is synthesised with the Web Audio API, so there are no audio files. The
+  mute switch next to the status badge is remembered in `localStorage`, and
+  visitors whose OS asks for reduced motion get a page without transitions
+  and start muted. The jingle is the `SUCCESS_MELODY` note list at the top of
+  `frontend/src/app/sound.service.ts`.
 - **Part 1 stays intact.** The only change to `crack_safe` is the optional
   `on_guess(guess, matches)` callback (default `None`), which leaves the
   submitted behaviour unchanged.
