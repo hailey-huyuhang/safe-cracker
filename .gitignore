@@ -1,0 +1,13 @@
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# frontend (dist/ is committed on purpose so the app runs with Python only)
+frontend/node_modules/
+frontend/.angular/
+
+# local tooling
+.claude/
+.DS_Store

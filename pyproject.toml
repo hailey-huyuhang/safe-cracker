@@ -1,0 +1,13 @@
+[project]
+name = "safe-cracker"
+version = "0.1.0"
+description = "Full-stack service around the crack_safe solver: Flask API + Angular UI"
+requires-python = ">=3.10"
+dependencies = ["flask>=3.0,<4", "gunicorn>=23"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

@@ -1,0 +1,142 @@
+<main class="page">
+  <header class="hero">
+    <p class="eyebrow">Flask · Angular</p>
+    <h1>Safe Cracker</h1>
+    <p class="lede">
+      Enter the safe's real 10-digit combination. The solver never reads it directly:
+      it only hears how many digits of each guess are in the right place, and works the
+      combination out from that.
+    </p>
+  </header>
+
+  <section class="card">
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <label class="field-label" for="combination">Actual combination</label>
+      <div class="field-row">
+        <input
+          id="combination"
+          type="text"
+          class="field"
+          formControlName="combination"
+          inputmode="numeric"
+          maxlength="10"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="0800666666"
+          [attr.aria-invalid]="combination.invalid && combination.touched"
+        />
+        <button type="button" class="btn ghost" (click)="randomize()" [disabled]="busy()">Random</button>
+        <button type="submit" class="btn primary" [disabled]="busy()">
+          {{ busy() ? 'Cracking…' : 'Crack the safe' }}
+        </button>
+      </div>
+      @if (combination.invalid && combination.touched) {
+        <p class="hint invalid">Enter exactly 10 digits (0–9).</p>
+      } @else {
+        <p class="hint">Exactly 10 digits, 0–9.</p>
+      }
+      <label class="toggle">
+        <input
+          type="checkbox"
+          [checked]="liveMode()"
+          (change)="liveMode.set($any($event.target).checked)"
+          [disabled]="busy()"
+        />
+        <span>Live view: stream every attempt from the backend as it happens</span>
+      </label>
+    </form>
+  </section>
+
+  <section class="card live" [attr.data-status]="status()">
+    <div class="live-head">
+      <div class="counter">
+        <span class="counter-label">Attempts</span>
+        <span class="counter-value">{{ attempts() }}</span>
+      </div>
+      <span class="badge">{{ statusLabel() }}</span>
+    </div>
+
+    <div class="dial" aria-label="Current guess">
+      @for (cell of cells(); track $index) {
+        <span class="cell" [class.hit]="cell.hit">{{ cell.char }}</span>
+      }
+    </div>
+    <p class="sound">
+      @if (currentMatches() !== null) {
+        Sound tool: <strong>{{ currentMatches() }}</strong> of 10 digits in place
+      } @else {
+        Sound tool: waiting for the first guess
+      }
+    </p>
+
+    @if (result(); as r) {
+      <dl class="result">
+        <div>
+          <dt>attempts</dt>
+          <dd>{{ r.attempts }}</dd>
+        </div>
+        <div>
+          <dt>time_taken</dt>
+          <dd>
+            {{ r.time_taken | number: '1.0-6' }} s
+            <small>({{ r.time_taken * 1e6 | number: '1.0-0' }} µs)</small>
+          </dd>
+        </div>
+      </dl>
+    }
+    @if (error(); as message) {
+      <p class="hint invalid">{{ message }}</p>
+    }
+  </section>
+
+  @if (probes().length > 0) {
+    <section class="card">
+      <h2>Probe log <small>{{ probes().length }} guesses</small></h2>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr><th>#</th><th>Guess</th><th>Sound</th></tr>
+          </thead>
+          <tbody>
+            @for (probe of probes(); track probe.attempt) {
+              <tr>
+                <td>{{ probe.attempt }}</td>
+                <td class="guess">
+                  @for (digit of probe.digits; track $index) {
+                    <span [class.hit]="digit === target()[$index]">{{ digit }}</span>
+                  }
+                </td>
+                <td>{{ probe.matches }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+
+  @if (history().length > 0) {
+    <section class="card">
+      <h2>This session</h2>
+      <table>
+        <thead>
+          <tr><th>Combination</th><th>Attempts</th><th>time_taken</th><th>Mode</th></tr>
+        </thead>
+        <tbody>
+          @for (entry of history(); track $index) {
+            <tr>
+              <td class="mono">{{ entry.combination }}</td>
+              <td>{{ entry.attempts }}</td>
+              <td>{{ entry.time_taken * 1e6 | number: '1.0-0' }} µs</td>
+              <td>{{ entry.live ? 'live' : 'plain' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+
+  <footer class="foot">
+    API: <code>POST /api/crack_safe/</code> · live view: <code>POST /api/crack_safe/stream/</code>
+  </footer>
+</main>
