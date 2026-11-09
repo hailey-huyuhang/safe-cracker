@@ -59,6 +59,11 @@ export class SoundService {
     }
   }
 
+  /** A position clicking into place. */
+  click(): void {
+    this.tone(noteFrequency('A6'), 0.03, 0.025, 0.1, 'square');
+  }
+
   /** Something went wrong: one low buzz. */
   failure(): void {
     this.tone(noteFrequency('C3'), 0, 0.25, 0.2, 'triangle');

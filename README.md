@@ -6,7 +6,7 @@ the "sound tool" feedback (how many positions of a guess are right); the
 frontend is an Angular app with a form to submit the real combination and a
 live view that shows the crack happening one attempt at a time.
 
-![Live view after cracking 0800666666: the attempt counter, the dial and the probe log](docs/live-view.jpg)
+![Mid-crack: the attempt counter, and the vault door whose first two digits have unlocked while the solver probes the third](docs/live-view.jpg)
 
 ## What's inside
 
@@ -79,7 +79,8 @@ curl -sN -X POST http://localhost:8000/api/crack_safe/stream/ \
 ```
 
 `pace_ms` (optional, 0–1000, default 40) is the delay between lines; the UI asks for
-80 ms so that each beep of the sound tool can be heard. The solver
+120 ms by default (its Speed selector offers 40 and 300) so that each beep and
+each lit digit can be followed. The solver
 itself runs unthrottled in a worker thread, so `time_taken` is its real
 duration; the pacing only spreads delivery out so a person can watch.
 
@@ -95,7 +96,9 @@ zoneless). The relevant files are:
 - `src/app/app.ts` – the page component: the form, the live counter, results and history
 - `src/app/app.html` / `app.css` – its template and styles
 - `src/app/crack-safe.service.ts` – the two API calls (plain POST, and the NDJSON stream)
+- `src/app/inference.ts` – follows the solver's reasoning from its probes alone, so each position can unlock the moment it becomes known
 - `src/app/sound.service.ts` – the audible sound tool: Web Audio beeps per probe and the success jingle
+- `src/app/celebration.service.ts` – the canvas confetti burst when the safe opens
 
 To work on it you need Node 22+:
 
@@ -157,12 +160,36 @@ attempts (mean 25.1) and about 25 µs.
   updates its counter per event and freezes it on `done`.
 - **The sound tool makes sound.** Every probe plays a short beep whose pitch
   rises with the number of digits in place (0 → A3, two semitones per digit),
-  and opening the safe plays a short jingle; a failed request buzzes. All of it
+  every position that unlocks clicks, and opening the safe plays a short
+  jingle; a failed request buzzes. All of it
   is synthesised with the Web Audio API, so there are no audio files. The
   mute switch next to the status badge is remembered in `localStorage`, and
   visitors whose OS asks for reduced motion get a page without transitions
   and start muted. The jingle is the `SUCCESS_MELODY` note list at the top of
   `frontend/src/app/sound.service.ts`.
+- **Watch the algorithm converge.** During a run the page is never told the
+  answer: `inference.ts` follows the solver's reasoning from the probes alone,
+  exactly as `cracker.py` does it. The all-same-digit guesses give the digit
+  counts, each single-position probe then moves the score by +1, −1 or 0, and
+  a position whose candidates are down to one digit (sometimes from the
+  leftover counts alone) is settled. The moment a position becomes certain,
+  its cell turns green with an open padlock and a soft click, so you can watch
+  the combination unlock from left to right, the order in which the solver
+  works through the positions. A digit that merely rang on the sound tool gets
+  a lighter tint that lingers for a moment, so the two views (what the sound
+  tool heard, what the solver knows) stay distinguishable even at speed. The unit tests replay real probe sequences
+  captured from the solver and check that the inference settles every
+  position in order and is never wrong along the way.
+- **Opening the safe is an event.** The dial sits on a vault door whose
+  combination wheel spins while the solver works. Once the last digit unlocks,
+  the door swings open in 3D to reveal the combination on a plaque inside,
+  and two cannons behind the door fire a full-screen burst of confetti mixed
+  with vault loot (coins, bills, gems and an open padlock) across a canvas
+  overlay for a few seconds. It is ~100 lines of plain canvas code with no
+  library or image assets, and it is skipped entirely, like the transitions,
+  when the OS asks for reduced motion.
+
+  ![The vault door has swung open to show the combination, and confetti with coins, bills, gems and open padlocks fills the page](docs/celebration.jpg)
 - **Part 1 stays intact.** The only change to `crack_safe` is the optional
   `on_guess(guess, matches)` callback (default `None`), which leaves the
   submitted behaviour unchanged.

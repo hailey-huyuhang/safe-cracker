@@ -36,15 +36,17 @@
       } @else {
         <p class="hint">Exactly 10 digits, 0–9.</p>
       }
-      <label class="toggle">
-        <input
-          type="checkbox"
-          [checked]="liveMode()"
-          (change)="liveMode.set($any($event.target).checked)"
-          [disabled]="busy()"
-        />
-        <span>Live view: stream every attempt from the backend as it happens</span>
-      </label>
+      <div class="controls">
+        <label class="toggle">
+          <input
+            type="checkbox"
+            [checked]="liveMode()"
+            (change)="liveMode.set($any($event.target).checked)"
+            [disabled]="busy()"
+          />
+          <span>Live view: stream every attempt from the backend as it happens</span>
+        </label>
+      </div>
     </form>
   </section>
 
@@ -55,6 +57,19 @@
         <span class="counter-value">{{ attempts() }}</span>
       </div>
       <div class="live-actions">
+        <div class="segmented" role="group" aria-label="Playback speed">
+          <span class="segmented-label">Speed</span>
+          @for (option of paces; track option) {
+            <button
+              type="button"
+              [class.active]="pace() === option"
+              (click)="pace.set(option)"
+              [disabled]="busy() || !liveMode()"
+            >
+              {{ option }}
+            </button>
+          }
+        </div>
         <button
           type="button"
           class="btn ghost small"
@@ -68,10 +83,29 @@
       </div>
     </div>
 
-    <div class="dial" aria-label="Current guess">
-      @for (cell of cells(); track $index) {
-        <span class="cell" [class.hit]="cell.hit">{{ cell.char }}</span>
-      }
+    <div class="vault" #vault [class.open]="doorOpen()">
+      <div class="vault-inside" aria-hidden="true">
+        <div class="loot">💰 🪙 💎 💵 🪙 💰</div>
+        <div class="plaque">{{ target() }}</div>
+        <div class="open-label">Vault open</div>
+      </div>
+      <div class="vault-door">
+        <div class="door-bar">
+          <span class="wheel" aria-hidden="true"></span>
+          <span class="door-label">10-digit lock</span>
+          <span class="handle" aria-hidden="true"></span>
+        </div>
+        <div class="dial" aria-label="Current guess">
+          @for (cell of cells(); track $index) {
+            <span class="cell" [class.hit]="cell.hit" [class.solved]="cell.solved" [class.probing]="cell.probing">
+              {{ cell.char }}
+              @if (cell.solved) {
+                <span class="latch" aria-hidden="true">🔓</span>
+              }
+            </span>
+          }
+        </div>
+      </div>
     </div>
     <p class="sound">
       @if (currentMatches() !== null) {

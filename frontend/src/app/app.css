@@ -18,7 +18,8 @@ h2 small { color: var(--muted); font-weight: 400; font-size: 13px; margin-left: 
 .btn.ghost { background: transparent; color: var(--text); border-color: var(--line); }
 .hint { margin: 10px 0 0; font-size: 13px; color: var(--muted); }
 .hint.invalid { color: var(--danger); }
-.toggle { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 14px; color: var(--muted); cursor: pointer; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; margin-top: 14px; }
+.toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); cursor: pointer; }
 .toggle input { accent-color: var(--accent); width: 16px; height: 16px; }
 
 .live-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; }
@@ -26,6 +27,11 @@ h2 small { color: var(--muted); font-weight: 400; font-size: 13px; margin-left: 
 .counter-label { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .counter-value { font: 700 64px/1 var(--mono); font-variant-numeric: tabular-nums; transition: color .2s; }
 .live-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.segmented { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); }
+.segmented-label { padding: 0 6px 0 10px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.segmented button { border: 0; background: transparent; color: var(--muted); font: 600 13px system-ui, sans-serif; padding: 5px 12px; border-radius: 999px; cursor: pointer; transition: background .15s, color .15s; }
+.segmented button.active { background: var(--panel-2); color: var(--accent); box-shadow: inset 0 0 0 1px var(--line); }
+.segmented button:disabled { cursor: not-allowed; opacity: .55; }
 .btn.small { padding: 6px 12px; font-size: 13px; }
 .badge { padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; background: var(--panel-2); color: var(--muted); border: 1px solid var(--line); white-space: nowrap; }
 .live[data-status="cracking"] .badge { color: var(--accent); border-color: var(--accent); }
@@ -34,9 +40,38 @@ h2 small { color: var(--muted); font-weight: 400; font-size: 13px; margin-left: 
 .live[data-status="cracking"] .counter-value { color: var(--accent); }
 .live[data-status="cracked"] .counter-value { color: var(--hit); }
 
-.dial { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; margin: 20px 0 10px; }
-.cell { aspect-ratio: 3 / 4; display: grid; place-items: center; font: 600 clamp(18px, 4vw, 28px) var(--mono); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; color: var(--muted); transition: background .15s, color .15s, border-color .15s; }
-.cell.hit { color: #062a26; background: var(--hit); border-color: var(--hit); }
+/* The vault: the door (with the dial on it) sits in front of the interior; on open it swings away in 3D. */
+.vault { position: relative; margin: 20px 0 10px; perspective: 1400px; }
+.vault-inside { position: absolute; inset: 0; display: grid; place-content: center; gap: 6px; text-align: center; border-radius: 14px; border: 1px solid var(--line); background: radial-gradient(120% 90% at 50% 100%, #1d2a4a, #0a0f1f 70%); opacity: 0; transition: opacity .4s .3s; }
+.vault.open .vault-inside { opacity: 1; }
+.loot { font-size: clamp(18px, 3.4vw, 28px); letter-spacing: .2em; }
+.plaque { font: 700 clamp(22px, 4.6vw, 36px) var(--mono); letter-spacing: .22em; color: var(--hit); text-shadow: 0 0 18px rgba(52, 211, 153, .5); }
+.open-label { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+.vault-door { position: relative; padding: 12px; border-radius: 14px; border: 1px solid #3a4668; background: linear-gradient(160deg, #2a3454, #171f36 60%, #1d2745); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 14px 30px rgba(0, 0, 0, .35); transform-origin: left center; transform-style: preserve-3d; backface-visibility: hidden; transition: transform .9s cubic-bezier(.35, .7, .2, 1); }
+.vault.open .vault-door { transform: rotateY(-108deg); }
+.door-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.door-label { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+.wheel { width: 34px; height: 34px; border-radius: 50%; background: repeating-conic-gradient(#8f9bbd 0 6deg, transparent 6deg 30deg); box-shadow: 0 0 0 2px #4b5880, inset 0 0 0 9px #171f36, inset 0 0 0 12px #4b5880; }
+.live[data-status="cracking"] .wheel { animation: spin 1.2s linear infinite; }
+.handle { width: 30px; height: 30px; border-radius: 50%; border: 3px solid #8f9bbd; background: linear-gradient(#8f9bbd, #8f9bbd) center / 100% 3px no-repeat, linear-gradient(#8f9bbd, #8f9bbd) center / 3px 100% no-repeat; transition: transform .5s; }
+.vault.open .handle { transform: rotate(90deg); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.dial { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; }
+.cell { position: relative; aspect-ratio: 3 / 4; display: grid; place-items: center; font: 600 clamp(18px, 4vw, 28px) var(--mono); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; color: var(--muted); transition: background .6s ease-out, color .6s ease-out, border-color .6s ease-out; }
+.cell.hit, .cell.solved, .cell.probing { transition-duration: .08s; }
+@keyframes pop {
+  0% { transform: scale(.8); }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+.live[data-status="cracked"] .badge { animation: pop .5s ease-out both; }
+/* hit: this digit rang on the sound tool; probing: the solver is working on this position; solved: it knows the digit */
+.cell.hit { color: var(--hit); background: rgba(52, 211, 153, .18); border-color: rgba(52, 211, 153, .55); }
+.cell.probing { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(94, 234, 212, .3); }
+.cell.solved { color: #062a26; background: var(--hit); border-color: var(--hit); animation: latch .35s cubic-bezier(.2, .9, .3, 1.3) both; }
+.latch { position: absolute; top: -9px; right: -7px; font-size: 13px; line-height: 1; animation: latch-in .3s .08s both; }
+@keyframes latch { 0% { transform: scale(.9); } 55% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@keyframes latch-in { from { opacity: 0; transform: translateY(5px) scale(.6); } to { opacity: 1; transform: none; } }
 .sound { margin: 0; color: var(--muted); font-size: 14px; }
 .sound strong { color: var(--text); }
 
@@ -63,6 +98,7 @@ code { font-family: var(--mono); background: var(--panel-2); padding: 2px 6px; b
 
 @media (max-width: 560px) {
   h1 { font-size: 32px; }
+  .field { font-size: 20px; letter-spacing: .16em; }
   .counter-value { font-size: 48px; }
   .card { padding: 18px; }
 }
